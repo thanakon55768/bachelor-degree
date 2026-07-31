@@ -1,0 +1,22 @@
+RTC_BTech_AIS2026_clean/
+├── core/                     Django project settings and URL routing
+├── research/                 Main research portal application
+│   ├── management/commands/  Custom Django commands
+│   ├── migrations/           Database schema history
+│   ├── templates/            Application HTML templates
+│   ├── templatetags/         Custom template helpers
+│   ├── models.py             Database models
+│   ├── views.py              Page and business logic
+│   ├── forms.py              Forms and validation
+│   └── apps.py               App startup configuration
+├── templates/registration/   Password-reset templates
+├── static/                   Static assets
+├── media/pdfs/               Local uploaded PDFs (ignored by Git)
+├── .vscode/                  VS Code recommendations/debug config
+├── manage.py                 Django command-line entry point
+├── generate_dummy_data.py    Optional sample-data generator
+├── requirements.txt          Python dependencies
+├── .env.example              Safe configuration template
+├── README.md                 Setup and usage
+├── LEARNING_GUIDE_TH.md       Thai learning path
+└── SECURITY_NOTES.md         Security work before production

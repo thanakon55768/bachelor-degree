@@ -1,0 +1,38 @@
+# Secrets and local data
+.env
+.env.*
+!.env.example
+db.sqlite3
+db.sqlite3-*
+media/*
+!media/.gitkeep
+!media/pdfs/
+media/pdfs/*
+!media/pdfs/.gitkeep
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Django
+staticfiles/
+*.log
+
+# Editors / OS
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Unrelated generated folders
+.pio/
+node_modules/
+*.crdownload

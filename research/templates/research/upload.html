@@ -1,0 +1,522 @@
+{% extends 'research/base.html' %}
+{% load static %}
+{% load research_extras %}
+
+{% block title %}{% if edit_mode %}แก้ไขผลงาน{% else %}เพิ่มผลงานวิจัยใหม่{% endif %} | RETC Academic Portal{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* ══════════════════════════════════════════
+           UPLOAD PAGE PREVIEW REDESIGN
+           ══════════════════════════════════════════ */
+        :root {
+            --crimson:    #7a0c22;
+            --crimson-dk: #4a0715;
+            --crimson-lt: #a01030;
+            --gold:       #c9972b;
+            --gold-lt:    #f0c060;
+            --navy:       #0f172a;
+            --bg-color:   #f8f5f0;
+            --gray-100:   #f1f5f9;
+            --gray-200:   #e2e8f0;
+            --gray-300:   #cbd5e1;
+            --gray-400:   #94a3b8;
+            --red:        #ef4444;
+        }
+
+        /* ── Header ── */
+        .upload-hero {
+            background: linear-gradient(150deg, #1a0208 0%, #5a0918 30%, #8a0c24 60%, #3e0510 100%);
+            padding: 80px 20px 100px;
+            text-align: left;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 4%;
+        }
+        .upload-hero h1 {
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 800;
+            margin-bottom: 12px;
+            display: flex; align-items: center; justify-content: flex-start; gap: 15px;
+        }
+        .upload-hero p { font-size: 1.1rem; opacity: 0.85; }
+
+        .hero-wave {
+            display: none;
+        }
+
+        /* ── Form Card ── */
+        .upload-card {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 20px 50px rgba(74,7,21,0.08);
+            max-width: 960px;
+            margin: -40px auto 80px;
+            padding: 50px 6%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-head {
+            font-size: 1.4rem; font-weight: 800; color: var(--navy);
+            margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
+            border-bottom: 2px solid var(--gray-100); padding-bottom: 15px;
+            margin-top: 40px;
+        }
+        .section-head i { color: var(--gold); }
+
+        /* ── Grid & Controls ── */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .full-width { grid-column: span 2; }
+        @media (max-width: 650px) { .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+
+        .form-group { margin-bottom: 24px; }
+        .label-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .form-group label { font-weight: 700; color: var(--navy); font-size: 0.95rem; }
+        .req { color: var(--red); }
+
+        .form-control, .django-widget, input[type="text"], input[type="number"], select, textarea {
+            width: 100%; padding: 12px 16px; border: 1.5px solid var(--gray-200);
+            border-radius: 10px; font-family: 'Sarabun', sans-serif; font-size: 1rem;
+            transition: all 0.2s;
+            color: var(--navy);
+            background: white;
+        }
+        
+        textarea {
+            line-height: 1.8;
+            min-height: 180px;
+            resize: none;
+            overflow-y: hidden;
+        }
+
+        .form-control:focus, input:focus, select:focus, textarea:focus { 
+            border-color: var(--gold); outline: none; box-shadow: 0 0 0 4px rgba(201,151,43,0.1); 
+        }
+        
+        /* ── Smart Formatting Tool ── */
+        .smart-wrapper { position: relative; }
+        .smart-actions { display: flex; gap: 8px; }
+        .btn-magic {
+            font-size: 0.75rem; background: var(--gray-100); border: 1.2px solid var(--gray-300);
+            padding: 3px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+            font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 5px;
+        }
+        .btn-magic:hover { background: white; border-color: var(--gold); color: var(--gold); }
+        
+        /* ── File Zone ── */
+        .file-zone {
+            display: block;
+            background: linear-gradient(to bottom, #fcfaf8, #f8f5f0);
+            padding: 25px 20px; border-radius: 12px; border: 1.5px dashed var(--gray-300);
+            text-align: center; transition: all 0.3s;
+            max-width: 100%; margin: 0 auto;
+            cursor: pointer;
+        }
+        .file-zone:hover { border-color: var(--gold); background: #fdfdfd; }
+        .file-icon { font-size: 1.8rem; color: var(--gold); opacity: 0.5; margin-bottom: 8px; display: block; }
+        .file-zone input[type="file"] { display: none; }
+
+        /* ── Buttons ── */
+        .btn-submit {
+            background: linear-gradient(135deg, var(--crimson-lt) 0%, var(--crimson) 100%);
+            color: white; border: none; padding: 16px 32px; border-radius: 14px;
+            font-size: 1.1rem; font-weight: 800; cursor: pointer; width: 100%;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 10px 25px rgba(122,12,34,0.25);
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            font-family: 'Sarabun', sans-serif;
+        }
+        .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(122,12,34,0.35); }
+
+        .btn-outline {
+            background: white; color: var(--gray-400); border: 1.5px solid var(--gray-200);
+            padding: 14px 24px; border-radius: 14px; text-decoration: none; font-weight: 700;
+            transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;
+            font-family: 'Sarabun', sans-serif; font-size: 1.05rem; min-width: 140px;
+        }
+        .btn-outline:hover { background: var(--gray-100); color: var(--navy); border-color: var(--gray-300); }
+
+        /* ── Guide Modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            display: none; align-items: center; justify-content: center; z-index: 9999;
+            backdrop-filter: blur(6px);
+        }
+        .modal-content {
+            background: white; border-radius: 20px; padding: 30px; width: 90%; max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: modalFade 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalFade { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .upload-hero { padding: 60px 16px 110px; }
+            .hero-inner { padding: 0; }
+            .upload-card { padding: 32px 20px; margin: -50px 12px 60px; border-radius: 18px; }
+            .section-head { font-size: 1.15rem; margin-top: 28px; padding-bottom: 12px; }
+            .form-grid { grid-template-columns: 1fr; gap: 0; }
+            .full-width { grid-column: span 1; }
+        }
+
+        @media (max-width: 480px) {
+            .upload-hero { padding: 48px 14px 90px; }
+            .upload-hero h1 { font-size: clamp(1.4rem, 6vw, 1.9rem); gap: 10px; }
+            .upload-hero p { font-size: 0.95rem; }
+            .upload-card { padding: 24px 14px; margin: -40px 8px 48px; border-radius: 16px; }
+            .section-head { font-size: 1.05rem; gap: 8px; }
+            .form-group { margin-bottom: 16px; }
+            .form-group label { font-size: 0.9rem; }
+            .form-control, .django-widget, input[type="text"], input[type="number"], select, textarea {
+                padding: 10px 12px; font-size: 0.95rem;
+            }
+            .file-zone { padding: 20px 14px; }
+
+            /* Stack the Submit / Cancel buttons */
+            div[style*="justify-content: center"][style*="gap: 20px"] {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .btn-outline { min-width: unset; text-align: center; }
+            .btn-submit { max-width: unset !important; }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-hero">
+    <div class="hero-inner">
+        <h1>
+            <i class="fas fa-file-export" style="color: var(--gold-lt);"></i>
+            <span>{% if edit_mode %}แก้ไขผลงานวิชาการ{% else %}เพิ่มผลงานวิจัยใหม่{% endif %}</span>
+        </h1>
+        <p>กรอกข้อมูลผลงานวิจัยของคุณเพื่อเผยแพร่ในระบบ</p>
+    </div>
+    <!-- Wave removed -->
+
+</div>
+
+<div class="upload-card">
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+
+        <!-- Section 1 -->
+        <div class="section-head"><i class="fas fa-info-circle"></i> 1. ข้อมูลพื้นฐานผลงาน</div>
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label>ชื่อผลงานวิจัย (ไทย) <span class="req">*</span></label>
+                {{ form.title_th }}
+            </div>
+            <div class="form-group full-width">
+                <label>ชื่อผลงานวิจัย (อังกฤษ)</label>
+                {{ form.title_en }}
+            </div>
+            <div class="form-group">
+                <label>สาขาวิชา/หน่วยงาน <span class="req">*</span></label>
+                {{ form.department }}
+            </div>
+            <div class="form-group">
+                <label>ประเภทงานวิจัย <span class="req">*</span></label>
+                {{ form.research_type }}
+            </div>
+            <div class="form-group">
+                <label>ปีที่เสร็จสิ้น (พ.ศ.) <span class="req">*</span></label>
+                {{ form.academic_year }}
+            </div>
+            <div class="form-group">
+                <label>หน่วยงาน/วิทยาลัย <span class="req">*</span></label>
+                {{ form.organization }}
+            </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="section-head"><i class="fas fa-users-cog"></i> 2. ทีมผู้วิจัยและผู้สนับสนุน</div>
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label>ชื่อนักวิจัยหลัก <span class="req">*</span></label>
+                {{ form.student_name }}
+            </div>
+            <div class="form-group">
+                <label>นักวิจัยร่วมคนที่ 1</label>
+                {{ form.researcher_co1 }}
+            </div>
+            <div class="form-group">
+                <label>นักวิจัยร่วมคนที่ 2</label>
+                {{ form.researcher_co2 }}
+            </div>
+            <div class="form-group full-width">
+                <label>ผู้สนับสนุนทุนวิจัย (Funding By)</label>
+                {{ form.funding_by }}
+            </div>
+            <div class="form-group full-width">
+                <div class="label-wrap">
+                    <label>รางวัลที่เคยได้รับ/เกียรติประวัติ</label>
+                </div>
+                {{ form.awards }}
+            </div>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="section-head"><i class="fas fa-align-left"></i> 3. เนื้อหาทางวิชาการ</div>
+        
+        <div class="form-group">
+            <div class="label-wrap">
+                <label>บทคัดย่อ (Abstract) <span class="req">*</span></label>
+            </div>
+            {{ form.abstract }}
+        </div>
+
+        <div class="form-group">
+            <label>คำสำคัญ (Keywords)</label>
+            {{ form.keywords }}
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <div class="label-wrap"><label>ความเป็นมา/หลักการและเหตุผล</label></div>
+                {{ form.background }}
+            </div>
+            <div class="form-group full-width">
+                <div class="label-wrap"><label>วัตถุประสงค์การวิจัย</label></div>
+                {{ form.objectives }}
+            </div>
+            <div class="form-group full-width">
+                <div class="label-wrap"><label>ขอบเขตการวิจัย</label></div>
+                {{ form.scope }}
+            </div>
+            <div class="form-group full-width">
+                <div class="label-wrap"><label>ประโยชน์ที่คาดว่าจะได้รับ</label></div>
+                {{ form.suggestions_use }}
+            </div>
+            <div class="form-group full-width">
+                <div class="label-wrap"><label>ทฤษฎีที่เกี่ยวข้อง</label></div>
+                {{ form.theory }}
+            </div>
+            <div class="form-group full-width">
+                <div class="label-wrap"><label>วิธีการดำเนินการวิจัย</label></div>
+                {{ form.methodology }}
+            </div>
+            <div class="form-group full-width">
+                <div class="label-wrap"><label>ผลการวิจัย</label></div>
+                {{ form.results }}
+            </div>
+            <div class="form-group full-width">
+                <div class="label-wrap"><label>อภิปรายผล</label></div>
+                {{ form.discussion }}
+            </div>
+            <div class="form-group full-width">
+                <div class="label-wrap"><label>ข้อเสนอแนะในการวิจัยครั้งต่อไป</label></div>
+                {{ form.suggestions_next }}
+            </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="section-head"><i class="fas fa-file-pdf"></i> 4. ไฟล์แนบต้นฉบับ</div>
+        <div class="form-group full-width">
+            <label>เลือกไฟล์ PDF ฉบับเต็ม (จำกัด 10MB) {% if not edit_mode %}<span class="req">*</span>{% endif %}</label>
+            {% if edit_mode and project.pdf_file %}
+                <p style="font-size:0.85rem;color:var(--gray-400);margin-bottom:12px;">
+                    <i class="fas fa-file-pdf" style="color:var(--red);"></i>
+                    ไฟล์ปัจจุบัน: {{ project.pdf_file.name|filename }}
+                </p>
+            {% endif %}
+            <label class="file-zone" for="{{ form.pdf_file.id_for_label }}">
+                <i class="fas fa-cloud-upload-alt file-icon"></i>
+                <p id="file-label">{% if edit_mode and project.pdf_file %}เปลี่ยนไฟล์ PDF{% else %}คลิกเพื่อเลือกไฟล์ หรือลากมาวาง{% endif %}</p>
+                {{ form.pdf_file }}
+                <p id="file-chosen-name" style="font-size: 0.9rem; color: var(--crimson); font-weight: 700; margin-top: 5px; display: none;"></p>
+                <p style="font-size: 0.85rem; color: var(--gray-400); margin-top: 8px;">รองรับเฉพาะไฟล์ .pdf เท่านั้น</p>
+            </label>
+        </div>
+
+        <div style="margin-top: 50px; display: flex; justify-content: center; gap: 20px;">
+            <a href="{% url 'my_projects' %}" class="btn-outline">ยกเลิก</a>
+            <button type="submit" class="btn-submit" id="submitBtn" style="max-width: 300px;">
+                <i class="fas fa-paper-plane"></i> 
+                <span>{% if edit_mode %}บันทึกการแก้ไข{% else %}ส่งผลงานเข้าคลังระบบ{% endif %}</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Shared Format Guide Component -->
+{% include 'research/components/smart_format.html' %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const isEditMode = "{{ edit_mode }}" === "True";
+    const form = document.getElementById('uploadForm');
+    const textareas = document.querySelectorAll('textarea');
+    const inputs = document.querySelectorAll('input:not([type="hidden"]), select, textarea');
+
+    // 1. Initial Draft Loading (Only if not in Edit mode)
+    if (!isEditMode) {
+        const savedDraft = localStorage.getItem('research_upload_draft');
+        if (savedDraft) {
+            try {
+                const draft = JSON.parse(savedDraft);
+                Object.keys(draft).forEach(key => {
+                    const el = document.getElementsByName(key)[0];
+                    if (el && el.type !== 'file') el.value = draft[key];
+                });
+            } catch (e) { console.error("Draft error", e); }
+        }
+    }
+
+    // 2. Draft Persistence: Save on change (Throttle)
+    let saveTimeout;
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            if (isEditMode) return;
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                const data = {};
+                new FormData(form).forEach((value, key) => {
+                    if (key !== 'pdf_file' && key !== 'csrfmiddlewaretoken') data[key] = value;
+                });
+                localStorage.setItem('research_upload_draft', JSON.stringify(data));
+            }, 1000);
+        });
+    });
+
+    // 3. File Selection UI & Validation
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileChosenName = document.getElementById('file-chosen-name');
+    const fileLabel = document.getElementById('file-label');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                const fileName = this.files[0].name;
+                fileChosenName.textContent = "เลือกไฟล์แล้ว: " + fileName;
+                fileChosenName.style.display = 'block';
+                fileLabel.textContent = "เปลี่ยนไฟล์ใหม่";
+            } else {
+                fileChosenName.style.display = 'none';
+                fileLabel.textContent = isEditMode ? "เปลี่ยนไฟล์ PDF" : "คลิกเพื่อเลือกไฟล์ หรือลากมาวาง";
+            }
+        });
+    }
+
+    // 4. Form Submit Validation
+    form.addEventListener('submit', (e) => {
+        // Validation: Required fields check
+        const requiredFields = [
+            { id: '{{ form.title_th.id_for_label }}', name: 'ชื่อผลงานวิจัย (ไทย)' },
+            { id: '{{ form.department.id_for_label }}', name: 'สาขาวิชา/หน่วยงาน' },
+            { id: '{{ form.academic_year.id_for_label }}', name: 'ปีที่เสร็จสิ้น' },
+            { id: '{{ form.student_name.id_for_label }}', name: 'ชื่อนักวิจัยหลัก' },
+            { id: '{{ form.abstract.id_for_label }}', name: 'บทคัดย่อ (Abstract)' }
+        ];
+
+        for (const field of requiredFields) {
+            const el = document.getElementById(field.id);
+            if (!el || !el.value.trim()) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ข้อมูลไม่ครบถ้วน',
+                    text: `กรุณากรอก ${field.name} ก่อนส่งผลงานค่ะ`,
+                    confirmButtonText: 'รับทราบ',
+                    confirmButtonColor: '#7a0c22'
+                });
+                el.focus();
+                el.style.borderColor = 'var(--red)';
+                return;
+            }
+        }
+
+        // Validation: Required PDF for NEW projects
+        const fileInput = document.querySelector('input[type="file"]');
+        if (!isEditMode && (!fileInput || !fileInput.files || fileInput.files.length === 0)) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'ไม่พบไฟล์แนบ',
+                text: 'กรุณาเลือกไฟล์ PDF ผลงานวิจัยฉบับเต็มก่อนส่งผลงานค่ะ',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#7a0c22'
+            });
+            return;
+        }
+
+        // Show Loading
+        Swal.fire({
+            title: 'กำลังส่งข้อมูล...',
+            text: 'กรุณารอสักครู่ ระบบกำลังอัปโหลดไฟล์ของคุณ',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        if (!isEditMode) localStorage.removeItem('research_upload_draft');
+    });
+
+    // 5. Inject Smart Toolbars and Tab Key Support
+    textareas.forEach(textarea => {
+        // Enable Tab key for indentation
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                // Insert 4 spaces (standard indent)
+                const spaces = "    ";
+                this.value = this.value.substring(0, start) + spaces + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + spaces.length;
+                
+                // Trigger input event to save draft
+                this.dispatchEvent(new Event('input'));
+            }
+        });
+
+        const parent = textarea.parentElement;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'smart-wrapper';
+        
+        const toolbar = document.createElement('div');
+        toolbar.className = 'smart-actions';
+        toolbar.style = "position:absolute; right:0; top:-35px;";
+        toolbar.innerHTML = `
+            <button type="button" class="btn-magic" style="background:none; border:none; color:var(--gray-400);" onclick="document.getElementById('formatGuideModal').style.display='flex'">
+                <i class="fas fa-question-circle"></i>
+            </button>
+            <button type="button" class="btn-magic">
+                <i class="fas fa-magic"></i> จัดระเบียบ
+            </button>
+        `;
+        
+        parent.insertBefore(wrapper, textarea);
+        wrapper.appendChild(toolbar);
+        wrapper.appendChild(textarea);
+        
+        const btnMagic = toolbar.querySelector('.btn-magic:last-child');
+        btnMagic.addEventListener('click', () => {
+            textarea.value = formatAcademicText(textarea.value);
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+            btnMagic.innerHTML = `<i class="fas fa-check" style="color:#10b981;"></i> เรียบร้อย`;
+            setTimeout(() => { btnMagic.innerHTML = `<i class="fas fa-magic"></i> จัดระเบียบ`; }, 2000);
+        });
+
+        // Auto Resize
+        textarea.style.overflow = 'hidden';
+        textarea.style.resize = 'none';
+        const autoResize = () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        };
+        textarea.addEventListener('input', autoResize);
+        setTimeout(autoResize, 100);
+    });
+});
+</script>
+{% endblock %}
