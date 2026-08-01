@@ -2,13 +2,34 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Django: Run server",
+      "name": "RETC: Backend",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/manage.py",
-      "args": ["runserver"],
+      "program": "${workspaceFolder}/backend/manage.py",
+      "cwd": "${workspaceFolder}/backend",
+      "args": ["runserver", "127.0.0.1:8000"],
       "django": true,
-      "justMyCode": true
+      "justMyCode": true,
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "RETC: Frontend",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend",
+      "serverReadyAction": {
+        "pattern": "Local:\\s+http://localhost:([0-9]+)",
+        "uriFormat": "http://localhost:%s",
+        "action": "openExternally"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "RETC: เปิดทั้งระบบ",
+      "configurations": ["RETC: Backend", "RETC: Frontend"],
+      "stopAll": true
     }
   ]
 }

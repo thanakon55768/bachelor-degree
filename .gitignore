@@ -9,6 +9,11 @@ media/*
 !media/pdfs/
 media/pdfs/*
 !media/pdfs/.gitkeep
+backend/media/*
+!backend/media/.gitkeep
+!backend/media/pdfs/
+backend/media/pdfs/*
+!backend/media/pdfs/.gitkeep
 
 # Python
 venv/
@@ -35,4 +40,6 @@ Thumbs.db
 # Unrelated generated folders
 .pio/
 node_modules/
+.next/
+frontend/.env.local
 *.crdownload

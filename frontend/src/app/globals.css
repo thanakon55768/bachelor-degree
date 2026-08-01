@@ -1,0 +1,34 @@
+@import "tailwindcss";
+@import "@fontsource-variable/noto-sans-thai";
+
+:root {
+  --background: #f7f5f2;
+  --foreground: #1e293b;
+  --brand: #7a0c22;
+  --brand-dark: #4e0715;
+  --gold: #c9972b;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Noto Sans Thai Variable", Tahoma, sans-serif;
+}
+button, input, textarea, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+
+@layer components {
+  .page-container { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .nav-link { @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-2 font-medium text-slate-600 transition hover:bg-red-50 hover:text-[#7a0c22]; }
+  .button { @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-50; }
+  .button-primary { @apply bg-[#7a0c22] text-white shadow-sm hover:bg-[#5b0718]; }
+  .button-secondary { @apply border border-slate-300 bg-white text-slate-700 hover:border-[#7a0c22] hover:text-[#7a0c22]; }
+  .button-gold { @apply bg-[#c9972b] text-white hover:bg-[#a77a1c]; }
+  .badge { @apply inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-[#7a0c22]; }
+  .panel { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6; }
+  .field { @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#7a0c22] focus:ring-4 focus:ring-red-100; }
+  .field-label { @apply mb-2 block text-sm font-bold text-slate-700; }
+  .section-title { @apply text-2xl font-black tracking-tight text-slate-900 sm:text-3xl; }
+}
