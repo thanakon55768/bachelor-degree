@@ -19,6 +19,7 @@ def create_project(**overrides):
         "title_th": "ระบบทดสอบงานวิจัย",
         "student_name": "นักศึกษาทดสอบ",
         "department": "CT",
+        "program": "BTECH_COMPUTER",
         "academic_year": 2569,
         "research_type": "innovation",
         "abstract": "บทคัดย่อสำหรับทดสอบระบบ API",
@@ -58,7 +59,8 @@ class ProjectApiTests(APITestCase):
                 "title_th": "ผลงานใหม่",
                 "student_name": "นักศึกษาทดสอบ",
                 "department": "CT",
-                "academic_year": 2569,
+                "program": "BTECH_COMPUTER",
+                "academic_year": 2556,
                 "research_type": "innovation",
                 "abstract": "เนื้อหาบทคัดย่อ",
                 "pdf_file": sample_pdf("upload.pdf"),
@@ -69,7 +71,37 @@ class ProjectApiTests(APITestCase):
         self.assertEqual(response.status_code, 201, response.data)
         project = Project.objects.get(pk=response.data["id"])
         self.assertEqual(project.uploaded_by, self.student)
+        self.assertEqual(project.academic_year, 2556)
         self.assertFalse(project.is_approved)
+
+    def test_options_include_all_departments_programs_and_historical_years(self):
+        response = self.client.get(reverse("api-project-options"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["departments"]), 12)
+        self.assertGreaterEqual(len(response.data["programs"]), 34)
+        self.assertIn(2556, response.data["academic_years"])
+        self.assertEqual(response.data["academic_year_min"], 2481)
+
+    def test_upload_rejects_program_from_another_department(self):
+        self.client.force_authenticate(self.student)
+        response = self.client.post(
+            reverse("api-project-list"),
+            {
+                "title_th": "สาขาไม่ตรงกับแผนก",
+                "student_name": "นักศึกษาทดสอบ",
+                "department": "CT",
+                "program": "VC_AUTO",
+                "academic_year": 2556,
+                "research_type": "innovation",
+                "abstract": "เนื้อหาบทคัดย่อ",
+                "pdf_file": sample_pdf("invalid-program.pdf"),
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("program", response.data)
 
     def test_staff_can_approve_project(self):
         project = create_project(is_approved=False, uploaded_by=self.student)

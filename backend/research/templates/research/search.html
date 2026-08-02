@@ -703,15 +703,20 @@
             <div class="search-filters-wrap">
                 <div class="search-filter-container">
                     <select name="dept" class="search-filter" onchange="document.getElementById('searchForm').submit()">
+                        <option value="">ทุกแผนกวิชา</option>
+                        {% for value, label in departments %}
+                        <option value="{{ value }}" {% if request.GET.dept == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <i class="fas fa-chevron-down filter-arrow"></i>
+                </div>
+
+                <div class="search-filter-container">
+                    <select name="program" class="search-filter" onchange="document.getElementById('searchForm').submit()">
                         <option value="">ทุกสาขาวิชา</option>
-                        <option value="EE" {% if request.GET.dept == 'EE' %}selected{% endif %}>สาขาเทคโนโลยีไฟฟ้า</option>
-                        <option value="ET" {% if request.GET.dept == 'ET' %}selected{% endif %}>สาขาเทคโนโลยีอิเล็กทรอนิกส์
-                        </option>
-                        <option value="PT" {% if request.GET.dept == 'PT' %}selected{% endif %}>สาขาเทคโนโลยีการผลิต</option>
-                        <option value="MT" {% if request.GET.dept == 'MT' %}selected{% endif %}>สาขาเทคโนโลยีเครื่องกล
-                        </option>
-                        <option value="CT" {% if request.GET.dept == 'CT' %}selected{% endif %}>สาขาเทคโนโลยีคอมพิวเตอร์
-                        </option>
+                        {% for value, label in programs %}
+                        <option value="{{ value }}" {% if request.GET.program == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
                     </select>
                     <i class="fas fa-chevron-down filter-arrow"></i>
                 </div>

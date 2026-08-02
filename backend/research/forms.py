@@ -1,3 +1,5 @@
+from datetime import date
+
 from django import forms
 from .models import Project
 
@@ -7,7 +9,7 @@ class ProjectForm(forms.ModelForm):
         # 1. ฟิลด์ทั้งหมด (ครบถ้วนตามหน้า Detail และ Upload)
         fields = [
             'title_th', 'title_en', 'student_name', 'researcher_co1', 'researcher_co2', 
-            'department', 'academic_year', 'research_type', 'organization', 
+            'department', 'program', 'academic_year', 'research_type', 'organization',
             'background', 'objectives', 'scope', 'abstract', 'keywords', 
             'theory', 'methodology', 'results', 'discussion', 
             'suggestions_use', 'suggestions_next', 'funding_by', 'awards', 
@@ -21,7 +23,8 @@ class ProjectForm(forms.ModelForm):
             'student_name': 'ชื่อนักวิจัยหลัก',
             'researcher_co1': 'นักวิจัยร่วมคนที่ 1',
             'researcher_co2': 'นักวิจัยร่วมคนที่ 2',
-            'department': 'สาขาวิชา/หน่วยงาน',
+            'department': 'แผนกวิชา',
+            'program': 'สาขาวิชา/ระดับการศึกษา',
             'academic_year': 'ปีการศึกษา (พ.ศ.)',
             'research_type': 'ประเภทงานวิจัย',
             'organization': 'หน่วยงาน/วิทยาลัย',
@@ -50,8 +53,9 @@ class ProjectForm(forms.ModelForm):
             'researcher_co1': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อ-นามสกุล (ถ้ามี)'}),
             'researcher_co2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อ-นามสกุล (ถ้ามี)'}),
             'keywords': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'เช่น AI, IoT, ร้อยเอ็ด'}),
-            'academic_year': forms.NumberInput(attrs={'class': 'form-control'}),
+            'academic_year': forms.NumberInput(attrs={'class': 'form-control', 'min': 2481}),
             'department': forms.Select(attrs={'class': 'form-control'}),
+            'program': forms.Select(attrs={'class': 'form-control'}),
             'research_type': forms.Select(attrs={'class': 'form-control'}),
             'organization': forms.TextInput(attrs={'class': 'form-control'}),
             'funding_by': forms.TextInput(attrs={'class': 'form-control'}),
@@ -81,6 +85,22 @@ class ProjectForm(forms.ModelForm):
             if file.size > 10 * 1024 * 1024:
                 raise forms.ValidationError("ไฟล์มีขนาดใหญ่เกินไป (จำกัดไม่เกิน 10MB)")
         return file
+
+    def clean_academic_year(self):
+        value = self.cleaned_data['academic_year']
+        maximum = date.today().year + 544
+        if value > maximum:
+            raise forms.ValidationError(f"ปีการศึกษาต้องไม่เกิน พ.ศ. {maximum}")
+        return value
+
+    def clean_program(self):
+        program = self.cleaned_data.get('program')
+        department = self.cleaned_data.get('department')
+        if not program:
+            raise forms.ValidationError("กรุณาเลือกสาขาวิชา")
+        if program and Project.PROGRAM_DEPARTMENTS.get(program) != department:
+            raise forms.ValidationError("สาขาวิชาที่เลือกไม่ตรงกับแผนกวิชา")
+        return program
 
     def clean(self):
         return super().clean()

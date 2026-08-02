@@ -23,6 +23,8 @@ export type Project = {
   title_en: string | null;
   department: string;
   department_name: string;
+  program: string;
+  program_name: string;
   academic_year: number;
   research_type: string;
   research_type_name: string;
@@ -66,8 +68,11 @@ export type Paginated<T> = {
 
 export type ProjectOptions = {
   departments: { value: string; label: string }[];
+  programs: { value: string; label: string; level: string; department: string }[];
   research_types: { value: string; label: string }[];
   academic_years: number[];
+  academic_year_min: number;
+  academic_year_max: number;
 };
 
 export type Stats = {

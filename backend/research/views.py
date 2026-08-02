@@ -122,6 +122,7 @@ def project_list(request):
 def project_search(request):
     query       = request.GET.get('q', '').strip()
     dept_filter = request.GET.get('dept', '').strip()
+    program_filter = request.GET.get('program', '').strip()
     year_filter = request.GET.get('year', '').strip()
 
     projects_qs = Project.objects.filter(is_approved=True).order_by('-academic_year', '-id')
@@ -131,15 +132,21 @@ def project_search(request):
         )
     if dept_filter:
         projects_qs = projects_qs.filter(department=dept_filter)
+    if program_filter:
+        projects_qs = projects_qs.filter(program=program_filter)
     if year_filter:
         projects_qs = projects_qs.filter(academic_year=year_filter)
 
     # ── ปีการศึกษาทั้งหมดที่มีในระบบ ─────────────────────────────────────────
-    all_years = list(
+    stored_years = set(
         Project.objects.filter(is_approved=True)
         .values_list('academic_year', flat=True)
         .distinct()
-        .order_by('-academic_year')
+    )
+    current_buddhist_year = date.today().year + 543
+    all_years = sorted(
+        stored_years | set(range(2481, current_buddhist_year + 2)),
+        reverse=True,
     )
 
     # ── Pagination 21 รายการ/หน้า (3 คอลัมน์ × 7 แถว) ────────────────────────
@@ -149,8 +156,11 @@ def project_search(request):
     return render(request, 'research/search.html', {
         'projects':           projects,
         'current_dept':       dept_filter,
+        'current_program':    program_filter,
         'current_year':       year_filter,
         'all_years':          all_years,
+        'departments':        Project.DEPARTMENTS,
+        'programs':           Project.PROGRAMS,
         'query':              query,
         'favorited_ids':      get_user_favorite_ids(request.user),
     })

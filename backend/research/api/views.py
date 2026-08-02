@@ -96,6 +96,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
         query = self.request.query_params.get("q", "").strip()
         department = self.request.query_params.get("department", "").strip()
+        program = self.request.query_params.get("program", "").strip()
         academic_year = self.request.query_params.get("academic_year", "").strip()
         research_type = self.request.query_params.get("research_type", "").strip()
         approved = self.request.query_params.get("approved", "").strip().lower()
@@ -109,6 +110,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
             )
         if department:
             queryset = queryset.filter(department=department)
+        if program:
+            queryset = queryset.filter(program=program)
         if academic_year:
             queryset = queryset.filter(academic_year=academic_year)
         if research_type:
@@ -158,21 +161,46 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def options(self, request):
-        years = list(
+        stored_years = set(
             Project.objects.filter(is_approved=True)
             .values_list("academic_year", flat=True)
             .distinct()
-            .order_by("-academic_year")
         )
+        current_buddhist_year = date.today().year + 543
+        years = sorted(
+            stored_years | set(range(2481, current_buddhist_year + 2)),
+            reverse=True,
+        )
+
+        def program_level(value):
+            if value.startswith("VC_"):
+                return "ปวช."
+            if value.startswith("HVC_"):
+                return "ปวส."
+            if value.startswith("BTECH_"):
+                return "ทล.บ."
+            return "ทั่วไป"
+
         return Response(
             {
                 "departments": [
                     {"value": value, "label": label} for value, label in Project.DEPARTMENTS
                 ],
+                "programs": [
+                    {
+                        "value": value,
+                        "label": label,
+                        "level": program_level(value),
+                        "department": Project.PROGRAM_DEPARTMENTS[value],
+                    }
+                    for value, label in Project.PROGRAMS
+                ],
                 "research_types": [
                     {"value": value, "label": label} for value, label in Project.RESEARCH_TYPES
                 ],
-                "academic_years": years or [date.today().year + 543],
+                "academic_years": years,
+                "academic_year_min": 2481,
+                "academic_year_max": current_buddhist_year + 1,
             }
         )
 

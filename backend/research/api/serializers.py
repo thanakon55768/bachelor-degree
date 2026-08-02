@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
@@ -81,6 +83,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source="get_department_display", read_only=True)
+    program_name = serializers.CharField(source="get_program_display", read_only=True)
     research_type_name = serializers.CharField(source="get_research_type_display", read_only=True)
     uploaded_by_name = serializers.CharField(source="uploaded_by.username", read_only=True)
     average_rating = serializers.FloatField(read_only=True)
@@ -98,6 +101,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             "title_en",
             "department",
             "department_name",
+            "program",
+            "program_name",
             "academic_year",
             "research_type",
             "research_type_name",
@@ -172,6 +177,29 @@ class ProjectSerializer(serializers.ModelSerializer):
             return []
         roots = obj.comments.filter(parent__isnull=True).select_related("user")
         return CommentSerializer(roots, many=True).data
+
+    def validate_academic_year(self, value):
+        current_buddhist_year = date.today().year + 543
+        if value < 2481:
+            raise serializers.ValidationError("ปีการศึกษาต้องไม่ต่ำกว่า พ.ศ. 2481")
+        if value > current_buddhist_year + 1:
+            raise serializers.ValidationError(
+                f"ปีการศึกษาต้องไม่เกิน พ.ศ. {current_buddhist_year + 1}"
+            )
+        return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        department = attrs.get("department", getattr(self.instance, "department", ""))
+        program = attrs.get("program", getattr(self.instance, "program", ""))
+
+        if self.instance is None and not program:
+            raise serializers.ValidationError({"program": "กรุณาเลือกสาขาวิชา"})
+        if program and Project.PROGRAM_DEPARTMENTS.get(program) != department:
+            raise serializers.ValidationError(
+                {"program": "สาขาวิชาที่เลือกไม่ตรงกับแผนกวิชา"}
+            )
+        return attrs
 
     def validate_pdf_file(self, value):
         if value.size > 10 * 1024 * 1024:

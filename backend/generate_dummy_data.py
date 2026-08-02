@@ -11,12 +11,19 @@ from research.models import Project
 
 def generate_dummy():
     departments = [
-        ('EE', 'สาขาเทคโนโลยีไฟฟ้า'),
-        ('ET', 'สาขาเทคโนโลยีอิเล็กทรอนิกส์'),
-        ('PT', 'สาขาเทคโนโลยีการผลิต'),
-        ('MT', 'สาขาเทคโนโลยีเครื่องกล'),
-        ('CT', 'สาขาเทคโนโลยีคอมพิวเตอร์'),
+        ('EE', 'แผนกวิชาช่างไฟฟ้ากำลัง'),
+        ('ET', 'แผนกวิชาช่างอิเล็กทรอนิกส์'),
+        ('PT', 'แผนกวิชาช่างกลโรงงาน'),
+        ('MT', 'แผนกวิชาช่างยนต์'),
+        ('CT', 'แผนกวิชาเทคโนโลยีคอมพิวเตอร์'),
     ]
+    programs = {
+        'EE': 'BTECH_ELECTRICAL',
+        'ET': 'BTECH_ELECTRONICS',
+        'PT': 'BTECH_PRODUCTION',
+        'MT': 'BTECH_MECHANICAL',
+        'CT': 'BTECH_COMPUTER',
+    }
 
     research_types = ['classroom', 'r_d', 'innovation', 'survey']
     
@@ -58,6 +65,7 @@ def generate_dummy():
                 title_th=title_th,
                 title_en=title_en,
                 department=dept_code,
+                program=programs[dept_code],
                 academic_year=year,
                 research_type=res_type,
                 student_name=student,

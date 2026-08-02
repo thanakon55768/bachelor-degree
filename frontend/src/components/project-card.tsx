@@ -5,10 +5,11 @@ import type { Project } from "@/types";
 export function ProjectCard({ project }: { project: Project }) {
   return (
     <article className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-[#c9972b]/60 hover:shadow-lg">
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
         <span className="badge">{project.department_name}</span>
         <span className="text-sm font-semibold text-slate-500">พ.ศ. {project.academic_year}</span>
       </div>
+      {project.program_name ? <p className="mb-3 text-xs font-semibold text-[#7a0c22]">{project.program_name}</p> : null}
       <Link href={`/projects/${project.id}`} className="text-lg font-bold leading-7 text-slate-900 transition group-hover:text-[#7a0c22]">
         {project.title_th}
       </Link>

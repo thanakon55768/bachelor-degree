@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
@@ -37,12 +38,72 @@ def validate_file_size(value):
 # ─── Project ───────────────────────────────────────────────────────────────────
 class Project(models.Model):
     DEPARTMENTS = [
-        ('EE', 'สาขาเทคโนโลยีไฟฟ้า'),
-        ('ET', 'สาขาเทคโนโลยีอิเล็กทรอนิกส์'),
-        ('PT', 'สาขาเทคโนโลยีการผลิต'),
-        ('MT', 'สาขาเทคโนโลยีเครื่องกล'),
-        ('CT', 'สาขาเทคโนโลยีคอมพิวเตอร์'),
+        ('PT', 'แผนกวิชาช่างกลโรงงาน'),
+        ('CV', 'แผนกวิชาช่างก่อสร้างและโยธา'),
+        ('WL', 'แผนกวิชาช่างโลหะการ'),
+        ('MT', 'แผนกวิชาช่างยนต์'),
+        ('EE', 'แผนกวิชาช่างไฟฟ้ากำลัง'),
+        ('ET', 'แผนกวิชาช่างอิเล็กทรอนิกส์'),
+        ('MR', 'แผนกวิชาช่างเมคคาทรอนิกส์และหุ่นยนต์'),
+        ('BF', 'แผนกวิชาช่างเทคนิคพื้นฐาน'),
+        ('IT', 'แผนกวิชาช่างเทคนิคอุตสาหกรรม'),
+        ('AR', 'แผนกวิชาช่างเทคนิคสถาปัตยกรรม'),
+        ('CT', 'แผนกวิชาเทคโนโลยีคอมพิวเตอร์'),
+        ('GE', 'แผนกวิชาสามัญสัมพันธ์'),
     ]
+
+    PROGRAMS = [
+        ('VC_AUTO', '[ปวช.] ช่างยนต์'),
+        ('VC_EV', '[ปวช.] ยานยนต์ไฟฟ้า'),
+        ('VC_BODY', '[ปวช.] ตัวถังและสีรถยนต์'),
+        ('VC_MACHINE', '[ปวช.] ช่างกลโรงงาน'),
+        ('VC_WELD', '[ปวช.] ช่างเชื่อมโลหะ'),
+        ('VC_MAINT', '[ปวช.] ช่างซ่อมบำรุง'),
+        ('VC_ELEC', '[ปวช.] ช่างไฟฟ้า'),
+        ('VC_ELECTRONICS', '[ปวช.] อิเล็กทรอนิกส์'),
+        ('VC_CONSTRUCTION', '[ปวช.] ช่างก่อสร้าง'),
+        ('VC_ARCH', '[ปวช.] สถาปัตยกรรม'),
+        ('VC_SURVEY', '[ปวช.] เทคนิควิศวกรรมสำรวจ'),
+        ('VC_CIVIL', '[ปวช.] โยธา'),
+        ('VC_COMPUTER', '[ปวช.] ช่างเทคนิคคอมพิวเตอร์'),
+        ('VC_MECHATRONICS', '[ปวช.] เมคคาทรอนิกส์และหุ่นยนต์'),
+        ('HVC_MECHANICAL', '[ปวส.] เทคนิคเครื่องกล'),
+        ('HVC_EV', '[ปวส.] เทคนิคยานยนต์ไฟฟ้า'),
+        ('HVC_BODY', '[ปวส.] เทคโนโลยีอุตสาหกรรมตัวถังและสีรถยนต์'),
+        ('HVC_PRODUCTION', '[ปวส.] เทคนิคการผลิต'),
+        ('HVC_METAL', '[ปวส.] เทคนิคโลหะ'),
+        ('HVC_INDUSTRIAL', '[ปวส.] เทคนิคอุตสาหกรรม'),
+        ('HVC_ELEC', '[ปวส.] ไฟฟ้า'),
+        ('HVC_ELECTRONICS', '[ปวส.] เทคโนโลยีอิเล็กทรอนิกส์'),
+        ('HVC_CIVIL', '[ปวส.] โยธา'),
+        ('HVC_SURVEY', '[ปวส.] เทคนิควิศวกรรมสำรวจ'),
+        ('HVC_ARCH', '[ปวส.] เทคนิคสถาปัตยกรรม'),
+        ('HVC_MECHATRONICS', '[ปวส.] เมคคาทรอนิกส์และหุ่นยนต์'),
+        ('HVC_COMPUTER', '[ปวส.] เทคโนโลยีคอมพิวเตอร์'),
+        ('BTECH_ELECTRONICS', '[ทล.บ.] เทคโนโลยีอิเล็กทรอนิกส์'),
+        ('BTECH_PRODUCTION', '[ทล.บ.] เทคโนโลยีการผลิต'),
+        ('BTECH_MECHANICAL', '[ทล.บ.] เทคโนโลยีเครื่องกล'),
+        ('BTECH_ELECTRICAL', '[ทล.บ.] เทคโนโลยีไฟฟ้า'),
+        ('BTECH_COMPUTER', '[ทล.บ.] เทคโนโลยีคอมพิวเตอร์'),
+        ('BASIC', 'ผลงานแผนกวิชาช่างเทคนิคพื้นฐาน'),
+        ('GENERAL', 'ผลงานแผนกวิชาสามัญสัมพันธ์'),
+    ]
+
+    PROGRAM_DEPARTMENTS = {
+        'VC_AUTO': 'MT', 'VC_EV': 'MT', 'VC_BODY': 'MT',
+        'VC_MACHINE': 'PT', 'VC_WELD': 'WL', 'VC_MAINT': 'PT',
+        'VC_ELEC': 'EE', 'VC_ELECTRONICS': 'ET',
+        'VC_CONSTRUCTION': 'CV', 'VC_ARCH': 'AR', 'VC_SURVEY': 'CV', 'VC_CIVIL': 'CV',
+        'VC_COMPUTER': 'CT', 'VC_MECHATRONICS': 'MR',
+        'HVC_MECHANICAL': 'MT', 'HVC_EV': 'MT', 'HVC_BODY': 'MT',
+        'HVC_PRODUCTION': 'PT', 'HVC_METAL': 'WL', 'HVC_INDUSTRIAL': 'IT',
+        'HVC_ELEC': 'EE', 'HVC_ELECTRONICS': 'ET',
+        'HVC_CIVIL': 'CV', 'HVC_SURVEY': 'CV', 'HVC_ARCH': 'AR',
+        'HVC_MECHATRONICS': 'MR', 'HVC_COMPUTER': 'CT',
+        'BTECH_ELECTRONICS': 'ET', 'BTECH_PRODUCTION': 'PT',
+        'BTECH_MECHANICAL': 'MT', 'BTECH_ELECTRICAL': 'EE', 'BTECH_COMPUTER': 'CT',
+        'BASIC': 'BF', 'GENERAL': 'GE',
+    }
 
     RESEARCH_TYPES = [
         ('classroom', 'วิจัยในชั้นเรียน'),
@@ -55,8 +116,12 @@ class Project(models.Model):
     # --- ส่วนที่ 1: ข้อมูลพื้นฐาน ---
     title_th = models.CharField(max_length=500, verbose_name="ชื่อผลงานวิจัย (ภาษาไทย)")
     title_en = models.CharField(max_length=500, verbose_name="ชื่อผลงานวิจัย (ภาษาอังกฤษ)", blank=True, null=True)
-    department = models.CharField(max_length=2, choices=DEPARTMENTS, default='CT', verbose_name="สาขาวิชา")
-    academic_year = models.IntegerField(verbose_name="ปีที่ผลงานวิจัยเสร็จ (พ.ศ.)")
+    department = models.CharField(max_length=2, choices=DEPARTMENTS, default='CT', verbose_name="แผนกวิชา")
+    program = models.CharField(max_length=32, choices=PROGRAMS, blank=True, default='', verbose_name="สาขาวิชา")
+    academic_year = models.IntegerField(
+        validators=[MinValueValidator(2481)],
+        verbose_name="ปีที่ผลงานวิจัยเสร็จ (พ.ศ.)",
+    )
     research_type = models.CharField(max_length=50, choices=RESEARCH_TYPES, default='innovation', verbose_name="ประเภทของงานวิจัย")
 
     # --- ส่วนที่ 2: ทีมผู้วิจัยและหน่วยงาน ---
